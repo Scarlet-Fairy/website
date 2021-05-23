@@ -1,0 +1,36 @@
+.container {
+  @apply bg-gray-700 
+  bg-opacity-60
+  text-white
+  rounded-lg;
+}
+
+.new-input-wrapper {
+  @apply container
+    flex
+    flex-row
+    items-center
+    justify-center;
+}
+
+.new-input {
+  @apply text-white
+    bg-transparent
+    outline-none
+    px-5
+    font-semibold;
+}
+
+.new-submit {
+  @apply text-white
+    m-2
+    p-2
+    rounded-lg
+    bg-red-600
+    hover:bg-red-500
+    focus:ring-4
+    focus:ring-red-400
+    font-bold
+    uppercase
+    cursor-pointer;
+}
