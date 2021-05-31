@@ -25,3 +25,7 @@
   background-color: var(--color-primary-700);
   border-radius: 5px;
 }
+
+#__next {
+  @apply w-screen h-screen scrollbar-thin scrollbar-thumb-gray-700 overflow-x-hidden;
+}

@@ -6,7 +6,7 @@ type LayoutProps = {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
-    <div className="w-screen h-screen scrollbar-thin text-white scrollbar-thumb-gray-700 flex flex-col justify-center items-center bg-gray-900">
+    <div className="min-h-full min-w-full overflow-x-hidden text-white flex flex-col justify-center items-center bg-gray-900">
       {children}
     </div>
   );

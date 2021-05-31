@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { Log } from "../../type/deploy";
 
 interface LogsProps {
@@ -17,7 +17,7 @@ const Logs: React.FC<LogsProps> = ({ logs }) => {
   return (
     <div
       ref={containerEl}
-      className="flex flex-col max-h-56 overflow-y-auto bg-black p-3 rounded-lg w-full"
+      className="w-full flex flex-col max-h-56 overflow-y-auto bg-black p-3 rounded-lg scrollbar-thin scrollbar-thumb-gray-800"
     >
       {logs
         .sort(

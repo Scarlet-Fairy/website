@@ -4,13 +4,18 @@ import { useMutation, useQuery } from "react-query";
 import Loader from "react-loader-spinner";
 
 import Layout from "../../components/Layout";
-import { getDeployQuery, getLogsQuery } from "../../lib/queries";
+import {
+  deleteDeployMutation,
+  getDeployQuery,
+  getLogsQuery,
+} from "../../lib/queries";
 import { useCreateDeployQuery } from "../../hooks/useCreateDeployQuery";
-import { MdCached, MdDone, MdErrorOutline } from "react-icons/md";
-import { Deploy, Log, Steps } from "../../type/deploy";
+import { MdCached, MdDelete, MdDone, MdErrorOutline } from "react-icons/md";
+import { DeleteDeployRequest, Deploy, Log, Steps } from "../../type/deploy";
 import { toast } from "react-toastify";
 import { AxiosError } from "axios";
 import Logs from "../../components/deploy/Logs";
+import { DELETE_DEPLOY } from "../../lib/endpoints";
 
 interface StateProps {}
 
@@ -20,12 +25,41 @@ const Run: React.FC<StateProps> = () => {
   const { id } = useCreateDeployQuery(router.query as Record<string, string>);
 
   const {
+    mutate,
+    error: errorDeleteDeploy,
+    isError: isErrorDeleteDeploy,
+    isLoading: isLoadingDeleteDeploy,
+    isSuccess: isSuccessDeleteDeploy,
+  } = useMutation<void, AxiosError, DeleteDeployRequest>(
+    "delete_deploy",
+    deleteDeployMutation
+  );
+
+  useEffect(() => {
+    if (!isErrorDeleteDeploy) return;
+
+    toast(
+      errorDeleteDeploy?.response?.data?.message || errorDeleteDeploy?.message,
+      {
+        type: "error",
+      }
+    );
+  }, [isErrorDeleteDeploy, errorDeleteDeploy]);
+
+  useEffect(() => {
+    if (!isSuccessDeleteDeploy) return;
+
+    router.push(`/deploy`);
+  }, [isSuccessDeleteDeploy]);
+
+  const {
     data: deploy,
     isLoading: isLoadingGetDeploy,
     isError: isErrorGetDeploy,
     error: errorGetDeploy,
+    remove,
   } = useQuery<Deploy, AxiosError>("get_deploy", getDeployQuery(id), {
-    enabled: !!id && hasToFetch,
+    enabled: !!id && hasToFetch && !isLoadingDeleteDeploy,
     refetchInterval: 1000,
   });
 
@@ -49,6 +83,7 @@ const Run: React.FC<StateProps> = () => {
     }),
     {
       enabled: !!deploy && !!deploy.workload.jobId,
+      refetchInterval: 1000,
     }
   );
 
@@ -65,8 +100,20 @@ const Run: React.FC<StateProps> = () => {
       ) : (
         <div className="w-full flex flex-row items-center justify-center">
           <div className="p-10 w-4/5 flex flex-col items-center justify-center">
-            <div className="my-5 pl-3 text-white font-bold text-5xl text-left flex flex-row justify-left items-center w-full">
-              {deploy.name}
+            <div className="my-5 pl-3  flex flex-row justify-left items-center w-full">
+              <div className="text-white font-bold text-5xl text-left">
+                {deploy.name}
+              </div>
+              <div className="flex-grow block"></div>
+              <div
+                className="new-submit"
+                onClick={() => {
+                  remove();
+                  mutate({ deployId: deploy.id });
+                }}
+              >
+                <MdDelete color={"#ffffff"} size={"20px"} />
+              </div>
             </div>
             <div className="container my-2 py-4 px-5 flex flex-row justify-start items-end">
               <label className="font-bold text-2xl mr-2">ID:</label>

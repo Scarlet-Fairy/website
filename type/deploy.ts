@@ -52,6 +52,18 @@ export interface GetDeployResponse {
   deploy: Deploy;
 }
 
+export interface ListDeploysRequest {}
+
+export interface ListDeploysResponse {
+  deploys: Array<Deploy>;
+}
+
+export interface DeleteDeployRequest {
+  deployId: string;
+}
+
+export interface DeleteDeployResponse {}
+
 export interface GetLogsRequest {
   deployId: string;
   offset: number;

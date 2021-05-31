@@ -1,153 +1,57 @@
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/router";
 import { AxiosError } from "axios";
-import { useMutation } from "react-query";
+import { useQuery } from "react-query";
 import { MdAdd } from "react-icons/md";
 import Loader from "react-loader-spinner";
 
-import { CreateDeployRequest, CreateDeployResponse } from "../../type/deploy";
-import Env from "../../components/deploy/Env";
 import Layout from "../../components/Layout";
-import { createDeployQuery } from "../../lib/queries";
+import { listDeploysQuery } from "../../lib/queries";
 import { toast } from "react-toastify";
+import { Deploy } from "../../type/deploy";
+import { LIST_DEPLOYS } from "../../lib/endpoints";
+import { useRouter } from "next/router";
 
-const NewDeploy = () => {
-  const [gitRepo, setGitRepo] = useState("");
-  const [name, setName] = useState("");
-  const [envs, setEnvs] = useState<Array<{ key: string; value: string }>>([]);
+interface ListProps {}
 
+const List: React.FC<ListProps> = () => {
   const router = useRouter();
 
-  const { mutate, data, error, isLoading, isError, isSuccess } = useMutation<
-    CreateDeployResponse,
-    AxiosError,
-    CreateDeployRequest
-  >("create_deploy", createDeployQuery);
-
-  const handleDeploy = () => {
-    if (!name || !gitRepo) return;
-    const obj: Record<string, string> = {};
-
-    envs.forEach((e) => (obj[e.key] = e.value));
-
-    mutate({
-      envs: obj,
-      name,
-      gitRepo,
-    });
-  };
-
-  useEffect(() => {
-    if (!isSuccess) return;
-
-    router.push(`/deploy/${data?.deployId}`);
-  }, [isSuccess, data]);
-
-  useEffect(() => {
-    if (!isError) return;
-
-    toast(error?.message, {
-      type: "error",
-    });
-  }, [isError, error]);
+  const { data, isLoading, isError, error } = useQuery<
+    Array<Deploy>,
+    AxiosError
+  >(LIST_DEPLOYS, listDeploysQuery);
 
   return (
     <Layout>
-      <div className="flex flex-col flex-1 justify-center items-center w-4/5">
-        <div className="new-input-wrapper w-full mb-2">
-          <form
-            className="w-full"
-            onSubmit={(e) => {
-              e.preventDefault();
-
-              handleDeploy();
-            }}
-          >
-            <input
-              className="new-input w-full"
-              onChange={(e) => setGitRepo(e.currentTarget.value)}
-              placeholder="Git Repo Url"
-              value={gitRepo}
-            />
-          </form>
-          <div className="new-submit" onClick={() => handleDeploy()}>
-            {isLoading ? (
-              <Loader
-                color={"#ffffff"}
-                type={"Oval"}
-                height={"20px"}
-                width={"20px"}
-              />
-            ) : (
-              "Deploy"
-            )}
-          </div>
-        </div>
-        <div className="flex flex-row justify-center mt-2 w-full">
-          <div className="new-input-wrapper h-12 mr-2 flex-grow">
-            <input
-              className="new-input flex-grow w-full"
-              onChange={(e) => setName(e.currentTarget.value)}
-              placeholder="Deploy Name"
-              value={name}
-            />
-          </div>
-          <div
-            className="flex flex-col items-center justify-center ml-2"
-            style={{
-              flexGrow: 5,
-            }}
-          >
-            {envs.map((env, i) => (
-              <Env
-                key={i}
-                keyValue={envs.find((e) => e.key === env.key)?.key}
-                valueValue={envs.find((e) => e.key === env.key)?.value}
-                onDelete={() => setEnvs(envs.filter((e) => e.key !== env.key))}
-                onKeyUpdate={(newKey) => {
-                  const backValue = env.value;
-
-                  const newEnv = envs.filter((e) => e.key !== env.key);
-                  newEnv.push({
-                    key: newKey,
-                    value: backValue,
-                  });
-
-                  setEnvs(newEnv);
-                }}
-                onValueUpdate={(newValue) => {
-                  const newEnv = envs.filter((e) => e.key !== env.key);
-                  newEnv.push({
-                    key: env.key,
-                    value: newValue,
-                  });
-
-                  setEnvs(newEnv);
-                }}
-              />
-            ))}
+      {isLoading || !data ? (
+        <Loader color={"#ffffff"} type={"Oval"} />
+      ) : (
+        <div className="p-10 w-4/5 flex flex-col items-center justify-center">
+          <div className="my-5 text-white flex flex-row justify-left items-center w-full">
+            <div className="font-bold text-5xl text-left">Deploys</div>
+            <div className="flex-grow block"></div>
             <div
-              className="container p-2 cursor-pointer hover:bg-gray-600 flex-grow flex flex-row justify-center items-center"
-              onClick={() => {
-                if (envs.find((e) => e.key === "")) {
-                  return;
-                }
-
-                envs.push({
-                  key: "",
-                  value: "",
-                });
-
-                setEnvs([...envs]);
-              }}
+              className="new-submit "
+              onClick={() => router.push("/deploy/new")}
             >
-              <MdAdd color="white" />
+              <MdAdd color="white" size={"20px"} />
             </div>
           </div>
+          {data.map((deploy, i) => (
+            <div
+              key={i}
+              className="container my-2 py-4 px-5 cursor-pointer hover:bg-gray-600"
+              onClick={() => {
+                router.push(`/deploy/${deploy.id}`);
+              }}
+            >
+              {deploy.name}
+            </div>
+          ))}
         </div>
-      </div>
+      )}
     </Layout>
   );
 };
 
-export default NewDeploy;
+export default List;
