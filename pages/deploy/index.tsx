@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import axios from "axios";
+import { AxiosError } from "axios";
 import { useMutation } from "react-query";
 import { MdAdd } from "react-icons/md";
+import Loader from "react-loader-spinner";
 
 import { CreateDeployRequest, CreateDeployResponse } from "../../type/deploy";
 import Env from "../../components/deploy/Env";
 import Layout from "../../components/Layout";
 import { createDeployQuery } from "../../lib/queries";
+import { toast } from "react-toastify";
 
 const NewDeploy = () => {
   const [gitRepo, setGitRepo] = useState("");
@@ -18,11 +20,12 @@ const NewDeploy = () => {
 
   const { mutate, data, error, isLoading, isError, isSuccess } = useMutation<
     CreateDeployResponse,
-    unknown,
+    AxiosError,
     CreateDeployRequest
   >("create_deploy", createDeployQuery);
 
   const handleDeploy = () => {
+    if (!name || !gitRepo) return;
     const obj: Record<string, string> = {};
 
     envs.forEach((e) => (obj[e.key] = e.value));
@@ -39,6 +42,14 @@ const NewDeploy = () => {
 
     router.push(`/deploy/${data?.deployId}`);
   }, [isSuccess, data]);
+
+  useEffect(() => {
+    if (!isError) return;
+
+    toast(error?.message, {
+      type: "error",
+    });
+  }, [isError, error]);
 
   return (
     <Layout>
@@ -60,7 +71,16 @@ const NewDeploy = () => {
             />
           </form>
           <div className="new-submit" onClick={() => handleDeploy()}>
-            Deploy
+            {isLoading ? (
+              <Loader
+                color={"#ffffff"}
+                type={"Oval"}
+                height={"20px"}
+                width={"20px"}
+              />
+            ) : (
+              "Deploy"
+            )}
           </div>
         </div>
         <div className="flex flex-row justify-center mt-2 w-full">

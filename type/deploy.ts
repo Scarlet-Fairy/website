@@ -1,4 +1,6 @@
 export type BuildStep = "UNKNOWN" | "CLONE" | "BUILD" | "PUSH";
+export const Steps = ["CLONE", "BUILD", "PUSH"];
+
 export type BuildStatus = "UNKNOWN" | "ERROR" | "LOADING" | "COMPLETED";
 
 export interface Build {
@@ -8,7 +10,7 @@ export interface Build {
   status: BuildStatus;
   steps: Array<{
     step: BuildStep;
-    name: string;
+    error: string;
   }>;
 }
 
@@ -16,6 +18,7 @@ export interface Workload {
   jobId: string;
   jobName: string;
   envs: Record<string, string>;
+  url: string;
 }
 
 export interface Deploy {
@@ -43,3 +46,7 @@ export interface GetDeployRequest {
 export interface GetDeployResponse {
   deploy: Deploy;
 }
+
+export interface GetLogsRequest {}
+
+export interface GetLogsResponse {}
