@@ -1,1 +1,2 @@
-# Scarlet Fairy Website
+# Website - ScarletFairy
+#### UI to control the platform
