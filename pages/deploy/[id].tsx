@@ -4,12 +4,13 @@ import { useMutation, useQuery } from "react-query";
 import Loader from "react-loader-spinner";
 
 import Layout from "../../components/Layout";
-import { getDeployQuery } from "../../lib/queries";
+import { getDeployQuery, getLogsQuery } from "../../lib/queries";
 import { useCreateDeployQuery } from "../../hooks/useCreateDeployQuery";
 import { MdCached, MdDone, MdErrorOutline } from "react-icons/md";
-import { Deploy, Steps } from "../../type/deploy";
+import { Deploy, Log, Steps } from "../../type/deploy";
 import { toast } from "react-toastify";
 import { AxiosError } from "axios";
+import Logs from "../../components/deploy/Logs";
 
 interface StateProps {}
 
@@ -20,23 +21,46 @@ const Run: React.FC<StateProps> = () => {
 
   const {
     data: deploy,
-    isLoading: isGetDeployLoading,
-    isError,
-    error,
-  } = useQuery<Deploy, AxiosError, Deploy>("get_deploy", getDeployQuery(id), {
+    isLoading: isLoadingGetDeploy,
+    isError: isErrorGetDeploy,
+    error: errorGetDeploy,
+  } = useQuery<Deploy, AxiosError>("get_deploy", getDeployQuery(id), {
     enabled: !!id && hasToFetch,
     refetchInterval: 1000,
   });
 
   useEffect(() => {
-    toast(error?.message, {
+    toast(errorGetDeploy?.response?.data?.message || errorGetDeploy?.message, {
       type: "error",
     });
-  }, [isError, error]);
+  }, [isErrorGetDeploy, errorGetDeploy]);
+
+  const {
+    data: logs,
+    isLoading: isLoadingGetLogs,
+    isError: isErrorGetLogs,
+    error: errorGetLogs,
+  } = useQuery<Array<Log>, AxiosError>(
+    "get_logs",
+    getLogsQuery({
+      deployId: deploy?.id as string,
+      offset: 0,
+      size: 50,
+    }),
+    {
+      enabled: !!deploy && !!deploy.workload.jobId,
+    }
+  );
+
+  useEffect(() => {
+    toast(errorGetLogs?.response?.data?.message || errorGetLogs?.message, {
+      type: "error",
+    });
+  }, [isErrorGetLogs, errorGetLogs]);
 
   return (
     <Layout>
-      {isGetDeployLoading || !deploy ? (
+      {isLoadingGetDeploy || !deploy ? (
         <Loader color={"#ffffff"} type={"Oval"} />
       ) : (
         <div className="w-full flex flex-row items-center justify-center">
@@ -92,7 +116,7 @@ const Run: React.FC<StateProps> = () => {
                 </div>
               ))}
             </div>
-            {deploy.workload.jobId ? (
+            {!!deploy.workload.jobId ? (
               <React.Fragment>
                 <div className="container my-2 py-4 px-5 flex flex-row justify-start items-end">
                   <label className="font-bold text-2xl mr-2">
@@ -105,13 +129,18 @@ const Run: React.FC<StateProps> = () => {
                     Workload url:
                   </label>
                   <a
-                    className="hover:underline"
+                    className="hover:underline text-blue-500"
                     href={"//" + deploy.workload.url}
                     target="_blank"
                   >
                     {deploy.workload.url}
                   </a>
                 </div>
+                {logs ? (
+                  <div className="container my-2 py-4 px-4 flex flex-row justify-start items-center">
+                    <Logs logs={logs} />
+                  </div>
+                ) : null}
               </React.Fragment>
             ) : null}
           </div>

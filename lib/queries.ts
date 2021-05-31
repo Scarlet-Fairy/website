@@ -1,12 +1,14 @@
 import axios from "axios";
 import { MutationFunction, QueryFunction } from "react-query";
 
-import { CREATE_DEPLOY, GET_DEPLOY } from "./endpoints";
+import { CREATE_DEPLOY, GET_DEPLOY, GET_LOGS } from "./endpoints";
 import {
   CreateDeployRequest,
   CreateDeployResponse,
   GetDeployResponse,
   Deploy,
+  GetLogsResponse,
+  Log,
 } from "../type/deploy";
 
 export const createDeployQuery: MutationFunction<
@@ -22,13 +24,31 @@ export const createDeployQuery: MutationFunction<
   return data;
 };
 
-export const getDeployQuery: (name: string) => QueryFunction<Deploy> =
-  (name: string) => async () => {
+export const getDeployQuery: (deployId: string) => QueryFunction<Deploy> =
+  (deployId: string) => async () => {
     const { data } = await axios.get<GetDeployResponse>(GET_DEPLOY, {
       params: {
-        name,
+        deployId,
       },
     });
 
     return data.deploy;
+  };
+
+export const getLogsQuery: (query: {
+  deployId: string;
+  offset: number;
+  size: number;
+}) => QueryFunction<Array<Log>> =
+  ({ deployId, offset, size }) =>
+  async () => {
+    const { data } = await axios.get<GetLogsResponse>(GET_LOGS, {
+      params: {
+        deployId,
+        offset,
+        size,
+      },
+    });
+
+    return data.logs;
   };

@@ -29,6 +29,11 @@ export interface Deploy {
   workload: Workload;
 }
 
+export interface Log {
+  timestamp: string;
+  body: string;
+}
+
 export interface CreateDeployRequest {
   gitRepo: string;
   name: string;
@@ -47,6 +52,12 @@ export interface GetDeployResponse {
   deploy: Deploy;
 }
 
-export interface GetLogsRequest {}
+export interface GetLogsRequest {
+  deployId: string;
+  offset: number;
+  size: number;
+}
 
-export interface GetLogsResponse {}
+export interface GetLogsResponse {
+  logs: Array<Log>;
+}
